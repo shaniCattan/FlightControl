@@ -56,7 +56,7 @@ namespace FlightControlWeb.Models
 			};
 		}
 
-		public List<Flights> GetActiveInternals(string relativeTo, bool isExternal)
+		public List<Flights> GetActiveInternals(string relativeTo)
 		{
 			List<Flights> activeFlights = new List<Flights>();
 			//create a DateTime object out of the relatieTo argument
@@ -93,7 +93,7 @@ namespace FlightControlWeb.Models
 						Passengers = currentPlan.Passengers,
 						Company_Name = currentPlan.Company_Name,
 						Date_Time = relativeTo,
-						Is_External = isExternal
+						Is_External = false
 					});
 				}
 			}
@@ -134,9 +134,9 @@ namespace FlightControlWeb.Models
 			}
 		}
 
-		public async Task<List<Flights>> GetExternalInternal(string relativeTo, bool isExternal)
+		public async Task<List<Flights>> GetExternalInternal(string relativeTo)
 		{
-			List<Flights> allActives = GetActiveInternals(relativeTo, isExternal); //internal flights
+			List<Flights> allActives = GetActiveInternals(relativeTo); //internal flights
 			List<Flights> externals = new List<Flights>();
 			string strResult = null;
 			foreach (var server in ServersController.servers)
