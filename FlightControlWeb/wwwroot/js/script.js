@@ -1,6 +1,6 @@
 ﻿const flightPlanUri = '../api/FlightPlan';
 const uri = '../api/Flights?relative_to';
-const delUri = '../api/servers'
+const delUri = '../api/Flights'
 let mymap = L.map('mapid').setView([51.505, -0.09], 13);
 let airplanesGroupLayer = L.layerGroup([]);
 //map by key to keep track of all the planes
@@ -49,6 +49,7 @@ function displayFlightPath(flightPlan) {
 }
 
 function getFlightById(flightId) {
+    // flight id after cutting the "tr_" at the beginning: 
     fetch(`${flightPlanUri}/${flightId}`)
         .then(response => response.json())
         .then(flightPlan => {
@@ -71,7 +72,7 @@ function displayFlightDetails(flightPlan) {
     //adding the new row:
     let strRow = '<tr><td>' + currFlightId + '</td>' + '<td>' + flightPlan.company_name + '</td>' +
         '<td>' + flightPlan.initial_location.longitude + '</td>' + '<td>' + flightPlan.initial_location.latitude + '</td>' +
-        '<td>' + flightPlan.passengers + '</td>' + '<td>' + flightPlan.initial_location.date_time + '</td>'+'</tr>';
+        '<td>' + flightPlan.passengers + '</td>' + '<td>' + flightPlan.initial_location.date_time + '</td>' + '</tr>';
     $("#flightDetailsTable > tbody").append(strRow);
 }
 
@@ -84,15 +85,15 @@ function addNewPlaneToMap(latitude, longitude, idFlight) {
     let newMarker = L.marker([latitude, longitude], { icon: blackIcon });
     newMarker.addTo(mymap);
     airplanesGroupLayer.addLayer(newMarker);
-    newMarker.layerID = idFlight;
+    newMarker.layerID = "icon_"+idFlight;
     mapAllPlanes.set(idFlight, newMarker);
-  //  alert(mapAllPlanes.has(idFlight) + " when addidng");
+    //  alert(mapAllPlanes.has(idFlight) + " when addidng");
     newMarker.on('click', changeIconOnClick).addTo(mymap);
 }
 //changes the icon when it is being clicked
 function changeIconOnClick(e) {
     e.target.setIcon(redIcon);
-    getFlightById(this.layerID);
+    getFlightById(this.layerID.split("icon_"));
     //highlighting the cliccekd flight
     $(document.getElementById("tr_" + this.layerID)).addClass('text-info').siblings().removeClass('text-info');
     $(document.getElementById("tr_" + this.layerID)).addClass('selected').siblings().removeClass('selected');
@@ -105,10 +106,11 @@ $(document).on("click", 'tr.rowFlight', function () {
     $(this).addClass('text-info').siblings().removeClass('text-info');
     $(this).addClass('selected').siblings().removeClass('selected');
     //displaying all is needed wahen clicking the row:
-    getFlightById(this.id);
+    let idCut = this.id.slice(3);
+    getFlightById(idCut);
     //changing icon:
-   // alert("mapAllPlanes has this.id " + mapAllPlanes.has(this.id));
-    mapAllPlanes.get(this.id).setIcon(redIcon);
+    alert("mapAllPlanes has this.id " + mapAllPlanes.has(idCut));
+    mapAllPlanes.get(idCut).setIcon(redIcon);
 });
 
 
@@ -133,10 +135,10 @@ function parseFlightsDataForMap(flights) {
 //then adds or sets regardingly
 function addOrSet(id, lat, lng) {
     if (mapAllPlanes.has(id)) {
-     //   alert("filght: " + id + "already exist");
+        //   alert("filght: " + id + "already exist");
         mapAllPlanes.get(id).setLatLng([lat, lng]);
     } else {//create a new planeIcon
-      //  alert("filght: " + id + "DOES NOT exist");
+        //  alert("filght: " + id + "DOES NOT exist");
         addNewPlaneToMap(lat, lng, id);
     }
 }
@@ -154,7 +156,7 @@ function checkIfFlightFinished(flights) {
 
             //if flight does not exist, need to remove the layer, and remove from mapOfAllPlanes
             if (!exist) {
-              //  alert(layerKey + "NOT EXIST when recieved info from server");
+                //  alert(layerKey + "NOT EXIST when recieved info from server");
                 airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
                 mymap.removeLayer(mapAllPlanes.get(layerKey));
                 mapAllPlanes.delete(layerKey);
@@ -184,20 +186,18 @@ function checkIfFlightFinished(flights) {
 function printingMapAllPlanes() {
     //alert("map size before printing:" + mapAllPlanes.size);
     for (let layerKey of mapAllPlanes.keys()) {
-    //    alert("flight: " + layerKey + "value: " + mapAllPlanes.get(layerKey) + "in mapAllPlanes");
+        //    alert("flight: " + layerKey + "value: " + mapAllPlanes.get(layerKey) + "in mapAllPlanes");
     }
     for (let val of mapAllPlanes.values()) {
-       // alert("value is: " + val);
+        // alert("value is: " + val);
     }
 }
-
 
 function resetDisplay() {
     //check if there is a flight in the flight details
     if (currFlightId != "") {
         //reset Icon
-        let currIcon = document.getElementById("Icon_" + currFlightId);
-        currIcon.target.setIcon(blackIcon);
+        mapAllPlanes.get(currFlightId).setIcon(blackIcon);
         //reset Flight Details table
         $("#flightDetailsTable tbody tr").remove();
         //clear flight path from map
@@ -292,6 +292,12 @@ function displayData(data) {
                     $("#myFlightsTable > tbody").append(strRow);
 
                 }
+                if (data[i].flight_id == currFlightId) {
+                    selectedRow = document.getElementById("tr_" + currFlightId);
+                    //highlighting the cliccekd flight
+                    $(selectedRow).addClass('text-info').siblings().removeClass('text-info');
+                    $(selectedRow).addClass('selected').siblings().removeClass('selected');
+                }
             }
         } else {
             if (data.is_external) {
@@ -304,6 +310,12 @@ function displayData(data) {
                 rowJq = $(strRow);
                 $("#myFlightsTable > tbody").append(strRow);
             }
+            if (data.flight_id == currFlightId) {
+                selectedRow = document.getElementById("tr_" + currFlightId);
+                //highlighting the cliccekd flight
+                $(selectedRow).addClass('text-info').siblings().removeClass('text-info');
+                $(selectedRow).addClass('selected').siblings().removeClass('selected');
+            }
         }
     }
 }
@@ -311,8 +323,8 @@ function displayData(data) {
 //working:MYFLIGHTS
 //FUNC:DELETE
 $(document).on("click", 'button.del', function () {
-    deleteFlightFromServer(this);
-   // alert(this.id);
+    deleteFlightFromServer(this.id);
+    // alert(this.id);
     $(this).closest('tr').remove();
 });
 

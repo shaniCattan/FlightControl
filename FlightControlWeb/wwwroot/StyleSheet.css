@@ -1,0 +1,8 @@
+﻿.selected {
+    background-color: greenyellow;
+}
+
+table {
+    padding: 0px;
+    border-collapse: collapse;
+}
