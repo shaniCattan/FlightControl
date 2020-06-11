@@ -24,7 +24,6 @@
         <form>
             <input type="file" id="fileInput" onchange="onChange(event)" style="visibility:hidden;" />
             <button type="button" id="customButton" style="font-size:15px;background-color:antiquewhite;font-weight:600;height:auto;padding:10px">ADD A NEW FLIGHT PLAN</button>
-            <script src="js/fileScript.js"></script>
         </form>
         <div id="error" class="alert alert-danger">
             <p id="errMsg"></p>
@@ -38,8 +37,8 @@
         <div class="row">
             <div class="col-md-8">
                 <!--Map Section-->
-                <div id="mapid" style="width:600px; height: 400px;"></div>
-                <script src="js/mapScript.js"></script>
+                <div id="mapid" style="width:600px; height: 400px;" onclick="resetDisplay()"></div>
+                <script src="js/script.js"></script>
                 <div class="row">
                     <div class="col-md-12" style="border:solid;background-color:antiquewhite">
                         <dv class="container" id="details">
@@ -65,21 +64,13 @@
             <div class="col-md-4" style="background-color:antiquewhite;">
                 <h1>My Flights</h1>
 
-                <table id="flightsTable" class="table table-hover" style="overflow:auto">
+                <table id="myFlightsTable" class="table table-hover" style="overflow:auto">
                     <thead>
                         <tr>
-                            <th>
-                                Flight ID
-                            </th>
-                            <th>
-                                Airline
-                            </th>
-                            <th>
-                                Is external
-                            </th>
-                            <th>
-                                Delete
-                            </th>
+                            <th>Flight Id</th>
+                            <th>Company Name</th>
+                            <th>Date Time</th>
+                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,18 +83,9 @@
                 <table id="exFlightsTable" class="table table-hover" style="overflow:auto">
                     <thead>
                         <tr>
-                            <th>
-                                Flight ID
-                            </th>
-                            <th>
-                                Airline
-                            </th>
-                            <th>
-                                Is external
-                            </th>
-                            <th>
-                                Delete
-                            </th>
+                            <th>Flight Id</th>
+                            <th>Company Name</th>
+                            <th>Date Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -112,6 +94,5 @@
             </div>
         </div>
     </div>
-    <script src="js/flightsScript.js"></script>
 </body>
 </html>
