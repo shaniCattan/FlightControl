@@ -1,119 +1,117 @@
-﻿<!doctype html>
-<html lang="en">
-<head>
-    <title>Bootstrap Example</title>
-
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-</head>
-
-<body>
-
-    <div class="container-fluid">
-
-        <h1>Example!</h1>
-        <p>Resize the browser window to see the effect.</p>
-        <p>The columns will automatically stack on top of each other when the screen is less than 768px wide.</p>
-
-        <div class="row">
-            <div class="col-sm-4" style="background-color:lavender;">.col-sm-4</div>
-            <div class="col-sm-8" style="background-color:lavenderblush;">.col-sm-8</div>
-        </div>
-    </div>
-
-        <!-- Optional JavaScript -->
-        <!-- jQuery -->
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!--
-    <!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>To-do CRUD</title>
-    <link rel="stylesheet" href="css/site.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <!--Map Section-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+            crossorigin=""></script>
+    <!--Flight Details & Buttons Section-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <h1>To-do CRUD</h1>
-    <h3>Add</h3>
-    <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
-        <input type="text" id="add-name" placeholder="New to-do">
-        <input type="submit" value="Add">
-    </form>
+    <h1>Flight Control</h1>
 
-    <div id="editForm">
-        <h3>Edit</h3>
-        <form action="javascript:void(0);" onsubmit="updateItem()">
-            <input type="hidden" id="edit-id">
-            <input type="checkbox" id="edit-isComplete">
-            <input type="text" id="edit-name">
-            <input type="submit" value="Save">
-            <a onclick="closeInput()" aria-label="Close">&#10006;</a>
+    <!-- File Upload button content-->
+    <div>
+        <form>
+            <input type="file" id="fileInput" onchange="onChange(event)" style="visibility:hidden;" />
+            <button type="button" id="customButton" style="font-size:15px;background-color:antiquewhite;font-weight:600;height:auto;padding:10px">ADD A NEW FLIGHT PLAN</button>
+            <script src="js/fileScript.js"></script>
         </form>
+        <div id="error" class="alert alert-danger">
+            <p id="errMsg"></p>
+        </div>
+        <script>
+            $("#error").hide();
+        </script>
     </div>
 
-    <p id="counter"></p>
+    <div class="container-fluid" style="border:solid;background-color:white; position:absolute">
+        <div class="row">
+            <div class="col-md-8">
+                <!--Map Section-->
+                <div id="mapid" style="width:600px; height: 400px;"></div>
+                <script src="js/mapScript.js"></script>
+                <div class="row">
+                    <div class="col-md-12" style="border:solid;background-color:antiquewhite">
+                        <dv class="container" id="details">
+                            <h2>Flight Details</h2>
+                            <table id="flightDetailsTable" class="table table-hover" style="overflow:auto">
+                                <thead>
+                                    <tr>
+                                        <th>Flight Id</th>
+                                        <th>Company Name</th>
+                                        <th>Longitude</th>
+                                        <th>Latitude</th>
+                                        <th>Passengers</th>
+                                        <th>Data-Time</th>
+                                        <th>External Flight</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" style="background-color:antiquewhite;">
+                <h1>My Flights</h1>
 
-    <table>
-        <tr>
-            <th>Is Complete?</th>
-            <th>Name</th>
-            <th></th>
-            <th></th>
-        </tr>
-        <tbody id="todos"></tbody>
-    </table>
+                <table id="flightsTable" class="table table-hover" style="overflow:auto">
+                    <thead>
+                        <tr>
+                            <th>
+                                Flight ID
+                            </th>
+                            <th>
+                                Airline
+                            </th>
+                            <th>
+                                Is external
+                            </th>
+                            <th>
+                                Delete
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <p></p>
+                <p></p>
+                <h1>External Flights</h1>
 
-    <script src="js/site.js" asp-append-version="true"></script>
-    <script type="text/javascript">
-        getItems();
-    </script>
+                <table id="exFlightsTable" class="table table-hover" style="overflow:auto">
+                    <thead>
+                        <tr>
+                            <th>
+                                Flight ID
+                            </th>
+                            <th>
+                                Airline
+                            </th>
+                            <th>
+                                Is external
+                            </th>
+                            <th>
+                                Delete
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="js/flightsScript.js"></script>
 </body>
 </html>
-
-
--->
