@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,7 +38,7 @@ namespace FlightControlWeb.Models
 			return password;
 		}
 
-		public void AddPlan(FlightPlan flightPlan, Dictionary<string, FlightPlan> plansDict)
+		public void AddPlan(FlightPlan flightPlan, ConcurrentDictionary<string, FlightPlan> plansDict)
 		{
 			/*			if (IsValid(flightPlan))
 						{
@@ -45,7 +46,7 @@ namespace FlightControlWeb.Models
 							return true;
 						}
 						return false;*/
-			plansDict.Add(NewID(), flightPlan);
+			plansDict.TryAdd(NewID(), flightPlan);
 
 		}
 

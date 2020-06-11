@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FlightControlWeb.Models;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace FlightControlWeb.Controllers
 {
@@ -13,11 +12,16 @@ namespace FlightControlWeb.Controllers
 	public class ServersController : Controller
 	{
 		private ServersManager srvManager = new ServersManager();
-		public static Dictionary<string, string> servers = new Dictionary<string, string>();
+		public static ConcurrentDictionary<string, string> servers;
+
+		public ServersController(ConcurrentDictionary<string, string> servers1)
+		{
+			servers = servers1;
+		}
 
 		// GET: api/<controller>
 		[HttpGet]
-		public Dictionary<string,string> Get()
+		public ConcurrentDictionary<string,string> Get()
 		{
 			return servers;
 		}

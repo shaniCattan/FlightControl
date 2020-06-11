@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,16 +7,19 @@ using System.Threading.Tasks;
 using FlightControlWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace FlightControlWeb.Controllers
 {
 	[Route("api/[controller]")]
 	public class FlightsController : Controller
 	{
 		private FlightsManager flightsManager = new FlightsManager();
-		public static Dictionary<string, string> externalActiveFlights = new Dictionary<string, string>();
-		// GET: api/<controller>
+		public static ConcurrentDictionary<string, string> externalActiveFlights;
+
+		public FlightsController(ConcurrentDictionary<string, string> externals)
+		{
+			externalActiveFlights = externals;
+		}
+
 		[HttpGet]
 		public async Task<Object> GetActiveFlights([FromQuery(Name = "relative_to")] string relativeTo)
 		{

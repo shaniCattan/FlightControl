@@ -129,7 +129,7 @@ namespace FlightControlWeb.Models
 			{
 				if (!FlightsController.externalActiveFlights.ContainsKey(e.Flight_ID))
 				{
-					FlightsController.externalActiveFlights.Add(e.Flight_ID, server.Value);
+					FlightsController.externalActiveFlights.TryAdd(e.Flight_ID, server.Value);
 				}
 			}
 		}
@@ -197,7 +197,7 @@ namespace FlightControlWeb.Models
 		{
 			if (FlightPlanController.plansDict.ContainsKey(id))
 			{
-				FlightPlanController.plansDict.Remove(id);
+				FlightPlanController.plansDict.TryRemove(id, out FlightPlan value);
 				return true;
 			}
 			return false;

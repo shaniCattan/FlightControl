@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace FlightControlWeb.Models
 {
@@ -10,14 +11,14 @@ namespace FlightControlWeb.Models
 	{
 		public ServersManager() { }
 
-		public void AddServer(Server newServer, Dictionary<string, string> servers)
+		public void AddServer(Server newServer, ConcurrentDictionary<string, string> servers)
 		{
 			if (!servers.ContainsKey(newServer.Server_ID)) //check if id exists
 			{
 				if (!servers.Any(ser => ser.Value.Equals(newServer.Server_URL,
 					StringComparison.CurrentCultureIgnoreCase))) //check if URL exists
 				{
-					servers.Add(newServer.Server_ID, newServer.Server_URL);
+					servers.TryAdd(newServer.Server_ID, newServer.Server_URL);
 				} else
 				{
 					throw new ArgumentException("Server URL is already in the list");
@@ -32,7 +33,7 @@ namespace FlightControlWeb.Models
 		{
 			if (ServersController.servers.ContainsKey(id))
 			{
-				ServersController.servers.Remove(id);
+				ServersController.servers.TryRemove(id, out string value);
 				return true;
 			}
 			else
