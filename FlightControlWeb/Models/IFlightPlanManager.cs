@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace FlightControlWeb.Models
 {
-	interface IFlightPlanManager
+	public interface IFlightPlanManager
 	{
-		public void AddPlan(FlightPlan flightPlan, ConcurrentDictionary<string, FlightPlan> plansDict);
-
+		public ConcurrentDictionary<string, FlightPlan> PlansDict { get; set; }
+		public ConcurrentDictionary<string, string> ExternalActiveFlights { get; set; }
+		public void AddPlan(FlightPlan flightPlan);
 	}
 }

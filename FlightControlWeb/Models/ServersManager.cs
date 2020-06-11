@@ -7,11 +7,13 @@ using System.Collections.Concurrent;
 
 namespace FlightControlWeb.Models
 {
-	public class ServersManager
+	public class ServersManager : IServerManager
 	{
-		public ServersManager() { }
+		public static ConcurrentDictionary<string, string> servers;
 
-		public void AddServer(Server newServer, ConcurrentDictionary<string, string> servers)
+		public ServersManager(ConcurrentDictionary<string, string> servers1) => servers = servers1;
+
+		public void AddServer(Server newServer)
 		{
 			if (!servers.ContainsKey(newServer.Server_ID)) //check if id exists
 			{
@@ -29,11 +31,16 @@ namespace FlightControlWeb.Models
 			}
 		}
 
+		public ConcurrentDictionary<string, string> GetServers()
+		{
+			return servers;
+		}
+
 		public bool DeleteServer(string id)
 		{
-			if (ServersController.servers.ContainsKey(id))
+			if (servers.ContainsKey(id))
 			{
-				ServersController.servers.TryRemove(id, out string value);
+				servers.TryRemove(id, out string value);
 				return true;
 			}
 			else

@@ -32,7 +32,6 @@ namespace FlightControlWeb.Models
         [JsonPropertyName("date_time")]
         public string Date_Time { get; set; }
 
-        bool isExternal = false;
         [JsonPropertyName("is_external")]
         public bool Is_External { get; set; }
     }

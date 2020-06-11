@@ -13,13 +13,9 @@ namespace FlightControlWeb.Controllers
 	[Route("api/[controller]")]
 	public class FlightPlanController : Controller
 	{
-		private IFlightPlanManager manager = new FlightPlanManager();
-		public static ConcurrentDictionary<string, FlightPlan> plansDict;
+		private IFlightPlanManager manager;
 
-		public FlightPlanController(ConcurrentDictionary<string, FlightPlan> plans)
-		{
-			plansDict = plans;
-		}
+		public FlightPlanController(IFlightPlanManager fManager) => manager = fManager;
 
 		// GET: api/<controller>
 		[HttpGet]
@@ -34,16 +30,16 @@ namespace FlightControlWeb.Controllers
 		{
 			//if it's in our dictionary return it, otherwise look for it in external servers
 			FlightPlan flightPlan;
-			if (plansDict.TryGetValue(id, out flightPlan))
+			if (manager.PlansDict.TryGetValue(id, out flightPlan))
 			{
 				return flightPlan;
 			} else
 			{
-				if (FlightsController.externalActiveFlights.TryGetValue(id, out string serverUrl))
+				if (manager.ExternalActiveFlights.TryGetValue(id, out string serverUrl))
 				{
-					string exPlan = await new FlightsManager().
-						getExternalFlights(serverUrl+"/api/FlightPlan/"+id);
-					return JsonConvert.DeserializeObject<FlightPlan>(exPlan);
+					string externalPlan = await FlightsManager.getExternalFlights(
+						serverUrl+"/api/FlightPlan/"+id);
+					return JsonConvert.DeserializeObject<FlightPlan>(externalPlan);
 				} else
 				{
 					return BadRequest("No flight plan of id no. " + id + " was found");
@@ -57,7 +53,7 @@ namespace FlightControlWeb.Controllers
 		{
 			if (flightPlan != null)
 			{
-				manager.AddPlan(flightPlan, plansDict);
+				manager.AddPlan(flightPlan);
 				return Ok(flightPlan);
 			}
 			return BadRequest("Flight plan was not added to server. " +

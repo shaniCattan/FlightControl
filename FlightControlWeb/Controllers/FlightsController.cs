@@ -1,24 +1,17 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using FlightControlWeb.Models;
+﻿using FlightControlWeb.Models;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FlightControlWeb.Controllers
 {
 	[Route("api/[controller]")]
 	public class FlightsController : Controller
 	{
-		private FlightsManager flightsManager = new FlightsManager();
-		public static ConcurrentDictionary<string, string> externalActiveFlights;
+		private IFlightsManager flightsManager;
 
-		public FlightsController(ConcurrentDictionary<string, string> externals)
-		{
-			externalActiveFlights = externals;
-		}
+		public FlightsController(IFlightsManager flightsManager1) => flightsManager = flightsManager1;
 
 		[HttpGet]
 		public async Task<Object> GetActiveFlights([FromQuery(Name = "relative_to")] string relativeTo)
@@ -33,22 +26,22 @@ namespace FlightControlWeb.Controllers
 			List<Flights> actives = new List<Flights>();
 			if (!isExternal)
 			{
-				actives = flightsManager.GetActiveInternals(relativeTo, isExternal);
+				actives = flightsManager.GetActiveInternals(relativeTo);
 			}
 			else
 			{
 				try
 				{
-					actives = await flightsManager.GetExternalInternal(relativeTo, isExternal);
+					actives = await flightsManager.GetExternalInternal(relativeTo);
 				} catch (Exception e)
 				{
 					return e.Message;
 				}
 			}
-			if (!actives.Any())
+/*			if (!actives.Any())
 			{
 				return "";
-			}
+			}*/
 			return actives;
 		}
 

@@ -1,21 +1,30 @@
-﻿using FlightControlWeb.Controllers;
-using Microsoft.EntityFrameworkCore.Internal;
+﻿using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace FlightControlWeb.Models
 {
-	public class FlightsManager
+	public class FlightsManager : IFlightsManager
 	{
-		public FlightsManager() { }
+		public static ConcurrentDictionary<string, FlightPlan> plansDict;
+		public static ConcurrentDictionary<string, string> externalActiveFlights;
+		public static ConcurrentDictionary<string, string> servers;
+
+
+		public FlightsManager(ConcurrentDictionary<string, FlightPlan> plans,
+			ConcurrentDictionary<string, string> externals, ConcurrentDictionary<string, string> servers1)
+		{
+			plansDict = plans;
+			externalActiveFlights = externals;
+			servers = servers1;
+		}
 
 		private List<double> calcLongLat(KeyValuePair<string, FlightPlan> plan, DateTime initialDT,
 			DateTime relativeToDT)
@@ -64,7 +73,7 @@ namespace FlightControlWeb.Models
 
 			//iterate through the flightPlans in our server, and if relativeTo's DateTime is 
 			//between the plan's initial and final DateTime, add it to activeFlights array
-			foreach (KeyValuePair<string, FlightPlan> plan in FlightPlanController.plansDict)
+			foreach (KeyValuePair<string, FlightPlan> plan in plansDict)
 			{
 				FlightPlan currentPlan = plan.Value;
 				int totalFlightTime = 0;
@@ -100,7 +109,7 @@ namespace FlightControlWeb.Models
 			return activeFlights;
 		}
 
-		public async Task<string> getExternalFlights(string url)
+		public static async Task<string> getExternalFlights(string url)
 		{
 			WebRequest request = WebRequest.Create(url);
 			request.Method = "GET";
@@ -127,9 +136,9 @@ namespace FlightControlWeb.Models
 		{
 			foreach(var e in externals)
 			{
-				if (!FlightsController.externalActiveFlights.ContainsKey(e.Flight_ID))
+				if (!externalActiveFlights.ContainsKey(e.Flight_ID))
 				{
-					FlightsController.externalActiveFlights.TryAdd(e.Flight_ID, server.Value);
+					externalActiveFlights.TryAdd(e.Flight_ID, server.Value);
 				}
 			}
 		}
@@ -139,7 +148,7 @@ namespace FlightControlWeb.Models
 			List<Flights> allActives = GetActiveInternals(relativeTo); //internal flights
 			List<Flights> externals = new List<Flights>();
 			string strResult = null;
-			foreach (var server in ServersController.servers)
+			foreach (var server in servers)
 			{
 				string url = String.Format(server.Value + "/api/Flights?relative_to=" + relativeTo);
 				try
@@ -195,9 +204,9 @@ namespace FlightControlWeb.Models
 
 		public bool DeleteFlight(string id)
 		{
-			if (FlightPlanController.plansDict.ContainsKey(id))
+			if (plansDict.ContainsKey(id))
 			{
-				FlightPlanController.plansDict.TryRemove(id, out FlightPlan value);
+				plansDict.TryRemove(id, out FlightPlan value);
 				return true;
 			}
 			return false;

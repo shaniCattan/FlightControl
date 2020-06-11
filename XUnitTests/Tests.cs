@@ -11,8 +11,54 @@ namespace XUnitFlightsControllersTest
 {
 	public class FlightsControllersTest
 	{
+		private readonly ConcurrentDictionary<string, string> externalFlightsStub =
+			new ConcurrentDictionary<string, string>();
+		private readonly ConcurrentDictionary<string, string> serversStub =
+			new ConcurrentDictionary<string, string>();
+		private readonly ConcurrentDictionary<string, FlightPlan> flightPlansStub =
+			new ConcurrentDictionary<string, FlightPlan>();
+
+		[Fact]
+		public void Get_flightPlanExists_ReturnsFlightPlan()
+		{
+			var mockFlightPlanManager = new FlightPlanManager(flightPlansStub, externalFlightsStub);
+			var mockFlightPlanController = new FlightPlanController(mockFlightPlanManager);
+			var testPlan = new FlightPlan(200, "ELAL",
+				new InitialLocation()
+				{
+					Latitude = 34.234,
+					Longitude = 21.234,
+					Date_Time = "2020-12-27T00:01:30Z"
+				}, new List<Segment>() { new Segment() {
+					Latitude = 32.234,
+					Longitude = 26.234,
+					Timespan_Seconds = 650}
+				});
+
+			var response = mockFlightPlanController.Post(testPlan);
+			var okResult = response as OkObjectResult;
+			var flightRes = (FlightPlan)okResult.Value;
+			Assert.Same(flightRes, testPlan);
+		}
+/*		[Fact]
+		public void Get_ExternalsExist_ReturnsFlightsList()
+		{
+			var myContext = new Mock<HttpContext>();
+			myContext.SetupGet(x => x.Request.QueryString).Returns(
+				new QueryString("?relative_to=2020-12-27T00:01:30Z"));
+			var myControllerContext = new ControllerContext() { HttpContext = myContext.Object };
+			var mockFlightsManager = new FlightsManager(flightPlansStub, externalFlightsStub, serversStub);
+			var controller = new FlightsController(mockFlightsManager)
+			{
+				ControllerContext = myControllerContext
+			};
+			var result = controller.GetActiveFlights("2020-12-27T00:02:30Z");
+
+			Assert.IsAssignableFrom<List<Flights>>(result);
+		}*/
+
 		/*		[Fact]
-				public async Task GetActiveFlights_ExternalsExist_ReturnFlightsList()
+				public void GetActiveFlights_ExternalsExist_ReturnFlightsList()
 				{
 					//Arrange
 					var server = new ServersController().Post(new Server("TS123", "http://rony7.atwebpages.com"));
@@ -24,19 +70,11 @@ namespace XUnitFlightsControllersTest
 					controller.Request.Query = new QueryCollection(dictionary);
 
 					//Act
-					var result = await controller.GetActiveFlights("2020-12-27T00:01:30Z");
+					var result = controller.GetActiveFlights("2020-12-27T00:01:30Z");
 
 					//Assert
 					Assert.IsAssignableFrom<List<Flights>>(result);
 				}*/
-
-		private readonly ConcurrentDictionary<string, string> externalFlightsStub =
-			new ConcurrentDictionary<string, string>();
-		private readonly ConcurrentDictionary<string, string> serversStub =
-			new ConcurrentDictionary<string, string>();
-		private readonly ConcurrentDictionary<string, FlightPlan> flightPlansStub =
-			new ConcurrentDictionary<string, FlightPlan>();
-
 		/*		[Fact]
 				public void Get_OnlyExternalExists_ReturnsFlightPlan()
 				{
@@ -113,41 +151,6 @@ namespace XUnitFlightsControllersTest
 
 					//Assert
 					//Assert.IsAssignableFrom<FlightPlan>(flights);
-				}*/
-
-		[Fact]
-		public void Get_flightPlanExists_ReturnsFlightPlan()
-		{
-			var mockFlightPlanController = new FlightPlanController
-				(new ConcurrentDictionary<string, FlightPlan>());
-			var testPlan = new FlightPlan(200, "ELAL",
-				new InitialLocation()
-				{
-					Latitude = 34.234,
-					Longitude = 21.234,
-					Date_Time = "2020-12-27T00:01:30Z"
-				}, new List<Segment>() { new Segment() {
-					Latitude = 32.234,
-					Longitude = 26.234,
-					Timespan_Seconds = 650} });
-
-			var response = mockFlightPlanController.Post(testPlan);
-			var okResult = response as OkObjectResult;
-			var flightRes = (FlightPlan)okResult.Value;
-			Assert.Same(flightRes, testPlan);
-		}
-		/*		[Fact]
-				public void Get_InternalsExist_ReturnsFlightPlan()
-				{
-					var myContext = new Mock<HttpContext>();
-					myContext.SetupGet(x => x.Request.QueryString).Returns(
-						new QueryString("?relative_to=2020-12-27T00:01:30Z"));
-					var myControllerContext = new ControllerContext() { HttpContext = myContext.Object};
-					var controller = new FlightsController(externalFlightsStub, flightPlansStub)
-					{
-						ControllerContext = myControllerContext
-					};
-					var result = controller.GetActiveFlights("2020-12-27T00:02:30Z");
 				}*/
 	}
 }

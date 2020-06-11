@@ -11,19 +11,15 @@ namespace FlightControlWeb.Controllers
 	[Route("api/[controller]")]
 	public class ServersController : Controller
 	{
-		private ServersManager srvManager = new ServersManager();
-		public static ConcurrentDictionary<string, string> servers;
+		private IServerManager srvManager;
 
-		public ServersController(ConcurrentDictionary<string, string> servers1)
-		{
-			servers = servers1;
-		}
+		public ServersController(IServerManager sm) => srvManager = sm;
 
 		// GET: api/<controller>
 		[HttpGet]
 		public ConcurrentDictionary<string,string> Get()
 		{
-			return servers;
+			return srvManager.GetServers();
 		}
 
 		// GET api/<controller>/5
@@ -39,7 +35,7 @@ namespace FlightControlWeb.Controllers
 		{
 			try
 			{
-				srvManager.AddServer(newServer, servers);
+				srvManager.AddServer(newServer);
 				return Ok("Server added successfully");
 			}
 			catch (Exception e)
