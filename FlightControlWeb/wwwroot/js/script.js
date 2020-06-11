@@ -193,13 +193,11 @@ function printingMapAllPlanes() {
     }
 }
 
-
 function resetDisplay() {
     //check if there is a flight in the flight details
     if (currFlightId != "") {
         //reset Icon
-        let currIcon = document.getElementById("icon_"+currFlightId);
-        currIcon.target.setIcon(blackIcon);
+        mapAllPlanes.get(currFlightId).setIcon(blackIcon);
         //reset Flight Details table
         $("#flightDetailsTable tbody tr").remove();
         //clear flight path from map
