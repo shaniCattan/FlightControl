@@ -31,7 +31,7 @@ namespace FlightControlWeb.Models
 		{
 			int cumulativeTimespan = 0, segIndex = 0;
 			Segment currSeg = new Segment(), lastSeg = new Segment();
-			DateTime segStartDT = initialDT, segEndDT;
+			DateTime segStartDT = initialDT, segEndDT = new DateTime();
 			//calculate percentage of time flown in current segment
 			//first determine in which segment we are according to relativeTo
 			foreach (Segment seg in plan.Value.Segments)
@@ -55,13 +55,16 @@ namespace FlightControlWeb.Models
 			//if we are in the first segment, then last segment == current segment
 			else if (segIndex == 1)
 			{
-				lastSeg = currSeg;
+				lastSeg.Latitude = plan.Value.Initial_Location.Latitude;
+				lastSeg.Longitude = plan.Value.Initial_Location.Longitude;
 			}
 			//calculate the timespan between the end of the last segment and relativeToDT
 			TimeSpan progress = relativeToDT - segStartDT;
+			TimeSpan segLength = segEndDT - segStartDT;
+			double relativeProgress = progress / segLength;
 			return new List<double>() {
-				lastSeg.Latitude + progress.TotalMinutes*(currSeg.Latitude-lastSeg.Latitude),
-				lastSeg.Longitude + progress.TotalMinutes*(currSeg.Longitude-lastSeg.Longitude),
+				lastSeg.Latitude + relativeProgress*(currSeg.Latitude-lastSeg.Latitude),
+				lastSeg.Longitude + relativeProgress*(currSeg.Longitude-lastSeg.Longitude),
 			};
 		}
 

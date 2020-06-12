@@ -38,10 +38,6 @@ namespace FlightControlWeb.Controllers
 					return e.Message;
 				}
 			}
-/*			if (!actives.Any())
-			{
-				return "";
-			}*/
 			return actives;
 		}
 
