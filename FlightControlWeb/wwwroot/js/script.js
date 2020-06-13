@@ -336,7 +336,6 @@ $(document).on("click", 'button.del', function () {
     deleteFlightFromServer(this.id);
     // alert(this.id);
     $(this).closest('tr').remove();
-    this.stopPropagation();
 });
 
 function deleteFlightFromServer(id) {
