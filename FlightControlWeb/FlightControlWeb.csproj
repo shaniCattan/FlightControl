@@ -4,7 +4,20 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>../out</OutputPath>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+
+	<PropertyGroup>
+
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+	</PropertyGroup>
+
+
+	<ItemGroup>
     <Content Remove="wwwroot\test.html" />
   </ItemGroup>
 
@@ -21,6 +34,40 @@
     <PackageReference Include="Moq" Version="4.14.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="C:\Users\avich\.nuget\packages\bootstrap\4.5.0\contentFiles\any\any\wwwroot\css\bootstrap-grid.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="C:\Users\avich\.nuget\packages\bootstrap\4.5.0\contentFiles\any\any\wwwroot\css\bootstrap-reboot.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="C:\Users\avich\.nuget\packages\bootstrap\4.5.0\contentFiles\any\any\wwwroot\css\bootstrap.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="C:\Users\avich\.nuget\packages\bootstrap\4.5.0\contentFiles\any\any\wwwroot\js\bootstrap.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\airplane-icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\script.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\redairplane.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\StyleSheet.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="mkdir $(SolutionDir)\wwwroot&#xD;&#xA;mkdir $(SolutionDir)\out\wwwroot&#xD;&#xA;xcopy /E /Y &quot;$(ProjectDir)wwwroot&quot; &quot;$(SolutionDir)wwwroot&quot;&#xD;&#xA;xcopy /E /Y &quot;$(ProjectDir)wwwroot&quot; &quot;$(SolutionDir)out/wwwroot&quot;&#xD;&#xA;" />
+  </Target>
 
 
 </Project>

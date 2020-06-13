@@ -201,6 +201,7 @@ namespace FlightControlWeb.Models
 				{
 					externals.Remove(e);
 				}
+				e.Is_External = true;
 			}
 			return externals;
 		}
