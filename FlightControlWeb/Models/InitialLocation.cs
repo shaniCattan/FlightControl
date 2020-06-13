@@ -9,9 +9,6 @@ namespace FlightControlWeb.Models
 {
 	public class InitialLocation
 	{
-/*		[IgnoreDataMember]
-		public string id { get; set; }*/
-
 		[JsonPropertyName("longitude")]
 		public double Longitude { get; set; }
 

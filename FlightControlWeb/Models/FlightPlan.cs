@@ -9,9 +9,14 @@ namespace FlightControlWeb.Models
 {
     public class FlightPlan
     {
-/*        [IgnoreDataMember]
-        public string ID { get; set; }*/
-
+        public FlightPlan() { }
+        public FlightPlan(int pass, string name, InitialLocation initLoc, List<Segment> segs)
+        {
+            Passengers = pass;
+            Company_Name = name;
+            Initial_Location = initLoc;
+            Segments = segs;
+        }
         [JsonPropertyName("passengers")]
         public int Passengers { get; set; }
 

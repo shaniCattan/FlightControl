@@ -9,9 +9,6 @@ namespace FlightControlWeb.Models
 {
     public class Server
     {
-/*        [IgnoreDataMember]
-        public string id { get; set; }*/
-
         [JsonPropertyName("ServerID")]
         public string Server_ID { get; set; }
 

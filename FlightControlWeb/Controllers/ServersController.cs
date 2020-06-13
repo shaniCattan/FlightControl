@@ -1,25 +1,25 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FlightControlWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace FlightControlWeb.Controllers
 {
 	[Route("api/[controller]")]
 	public class ServersController : Controller
 	{
-		private ServersManager srvManager = new ServersManager();
-		public static Dictionary<string, string> servers = new Dictionary<string, string>();
+		private IServerManager srvManager;
+
+		public ServersController(IServerManager sm) => srvManager = sm;
 
 		// GET: api/<controller>
 		[HttpGet]
-		public Dictionary<string,string> Get()
+		public ConcurrentDictionary<string,string> Get()
 		{
-			return servers;
+			return srvManager.GetServers();
 		}
 
 		// GET api/<controller>/5
@@ -35,7 +35,7 @@ namespace FlightControlWeb.Controllers
 		{
 			try
 			{
-				srvManager.AddServer(newServer, servers);
+				srvManager.AddServer(newServer);
 				return Ok("Server added successfully");
 			}
 			catch (Exception e)

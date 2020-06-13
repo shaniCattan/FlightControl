@@ -1,28 +1,37 @@
-﻿using FlightControlWeb.Controllers;
-using Microsoft.EntityFrameworkCore.Internal;
+﻿using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace FlightControlWeb.Models
 {
-	public class FlightsManager
+	public class FlightsManager : IFlightsManager
 	{
-		public FlightsManager() { }
+		public static ConcurrentDictionary<string, FlightPlan> plansDict;
+		public static ConcurrentDictionary<string, string> externalActiveFlights;
+		public static ConcurrentDictionary<string, string> servers;
+
+
+		public FlightsManager(ConcurrentDictionary<string, FlightPlan> plans,
+			ConcurrentDictionary<string, string> externals, ConcurrentDictionary<string, string> servers1)
+		{
+			plansDict = plans;
+			externalActiveFlights = externals;
+			servers = servers1;
+		}
 
 		private List<double> calcLongLat(KeyValuePair<string, FlightPlan> plan, DateTime initialDT,
 			DateTime relativeToDT)
 		{
 			int cumulativeTimespan = 0, segIndex = 0;
 			Segment currSeg = new Segment(), lastSeg = new Segment();
-			DateTime segStartDT = initialDT, segEndDT;
+			DateTime segStartDT = initialDT, segEndDT = new DateTime();
 			//calculate percentage of time flown in current segment
 			//first determine in which segment we are according to relativeTo
 			foreach (Segment seg in plan.Value.Segments)
@@ -46,17 +55,20 @@ namespace FlightControlWeb.Models
 			//if we are in the first segment, then last segment == current segment
 			else if (segIndex == 1)
 			{
-				lastSeg = currSeg;
+				lastSeg.Latitude = plan.Value.Initial_Location.Latitude;
+				lastSeg.Longitude = plan.Value.Initial_Location.Longitude;
 			}
 			//calculate the timespan between the end of the last segment and relativeToDT
 			TimeSpan progress = relativeToDT - segStartDT;
+			TimeSpan segLength = segEndDT - segStartDT;
+			double relativeProgress = progress / segLength;
 			return new List<double>() {
-				lastSeg.Latitude + progress.TotalMinutes*(currSeg.Latitude-lastSeg.Latitude),
-				lastSeg.Longitude + progress.TotalMinutes*(currSeg.Longitude-lastSeg.Longitude),
+				lastSeg.Latitude + relativeProgress*(currSeg.Latitude-lastSeg.Latitude),
+				lastSeg.Longitude + relativeProgress*(currSeg.Longitude-lastSeg.Longitude),
 			};
 		}
 
-		public List<Flights> GetActiveInternals(string relativeTo, bool isExternal)
+		public List<Flights> GetActiveInternals(string relativeTo)
 		{
 			List<Flights> activeFlights = new List<Flights>();
 			//create a DateTime object out of the relatieTo argument
@@ -64,7 +76,7 @@ namespace FlightControlWeb.Models
 
 			//iterate through the flightPlans in our server, and if relativeTo's DateTime is 
 			//between the plan's initial and final DateTime, add it to activeFlights array
-			foreach (KeyValuePair<string, FlightPlan> plan in FlightPlanController.plansDict)
+			foreach (KeyValuePair<string, FlightPlan> plan in plansDict)
 			{
 				FlightPlan currentPlan = plan.Value;
 				int totalFlightTime = 0;
@@ -93,14 +105,14 @@ namespace FlightControlWeb.Models
 						Passengers = currentPlan.Passengers,
 						Company_Name = currentPlan.Company_Name,
 						Date_Time = relativeTo,
-						Is_External = isExternal
+						Is_External = false
 					});
 				}
 			}
 			return activeFlights;
 		}
 
-		public async Task<string> getExternalFlights(string url)
+		public static async Task<string> getExternalFlights(string url)
 		{
 			WebRequest request = WebRequest.Create(url);
 			request.Method = "GET";
@@ -127,19 +139,19 @@ namespace FlightControlWeb.Models
 		{
 			foreach(var e in externals)
 			{
-				if (!FlightsController.externalActiveFlights.ContainsKey(e.Flight_ID))
+				if (!externalActiveFlights.ContainsKey(e.Flight_ID))
 				{
-					FlightsController.externalActiveFlights.Add(e.Flight_ID, server.Value);
+					externalActiveFlights.TryAdd(e.Flight_ID, server.Value);
 				}
 			}
 		}
 
-		public async Task<List<Flights>> GetExternalInternal(string relativeTo, bool isExternal)
+		public async Task<List<Flights>> GetExternalInternal(string relativeTo)
 		{
-			List<Flights> allActives = GetActiveInternals(relativeTo, isExternal); //internal flights
+			List<Flights> allActives = GetActiveInternals(relativeTo); //internal flights
 			List<Flights> externals = new List<Flights>();
 			string strResult = null;
-			foreach (var server in ServersController.servers)
+			foreach (var server in servers)
 			{
 				string url = String.Format(server.Value + "/api/Flights?relative_to=" + relativeTo);
 				try
@@ -189,15 +201,16 @@ namespace FlightControlWeb.Models
 				{
 					externals.Remove(e);
 				}
+				e.Is_External = true;
 			}
 			return externals;
 		}
 
 		public bool DeleteFlight(string id)
 		{
-			if (FlightPlanController.plansDict.ContainsKey(id))
+			if (plansDict.ContainsKey(id))
 			{
-				FlightPlanController.plansDict.Remove(id);
+				plansDict.TryRemove(id, out FlightPlan value);
 				return true;
 			}
 			return false;

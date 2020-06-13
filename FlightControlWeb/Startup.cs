@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using FlightControlWeb.Models;
+using System.Collections.Concurrent;
 
 namespace FlightControlWeb
 {
@@ -30,6 +31,14 @@ namespace FlightControlWeb
             services.AddRouting();
 
             services.AddControllers();
+
+            services.AddSingleton<ConcurrentDictionary<string, string>>(); //servers
+            services.AddSingleton<ConcurrentDictionary<string, string>>(); //externalActiveFlights
+            services.AddSingleton<ConcurrentDictionary<string, FlightPlan>>(); //flightPlansDictionary
+            services.AddSingleton<IFlightsManager, FlightsManager>();
+            services.AddSingleton<IFlightPlanManager, FlightPlanManager>();
+            services.AddSingleton<IServerManager, ServersManager>();
+
 
             services.AddMemoryCache();
 

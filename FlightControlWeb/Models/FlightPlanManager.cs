@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,8 +12,14 @@ namespace FlightControlWeb.Models
 {
 	public class FlightPlanManager : IFlightPlanManager
 	{
-		public FlightPlanManager()
+		public ConcurrentDictionary<string, FlightPlan> PlansDict { get; set; }
+		public ConcurrentDictionary<string, string> ExternalActiveFlights { get; set; }
+
+		public FlightPlanManager(ConcurrentDictionary<string, FlightPlan> plansDict1,
+			ConcurrentDictionary<string, string> externals)
 		{
+			PlansDict = plansDict1;
+			ExternalActiveFlights = externals;
 		}
 
 		public static List<string> usedIDs = new List<string>();
@@ -37,22 +44,9 @@ namespace FlightControlWeb.Models
 			return password;
 		}
 
-		public void AddPlan(FlightPlan flightPlan, Dictionary<string, FlightPlan> plansDict)
+		public void AddPlan(FlightPlan flightPlan)
 		{
-			/*			if (IsValid(flightPlan))
-						{
-							plansDict.Add(NewID(), flightPlan);
-							return true;
-						}
-						return false;*/
-			plansDict.Add(NewID(), flightPlan);
-
+			PlansDict.TryAdd(NewID(), flightPlan);
 		}
-
-		/*		private bool IsValid(FlightPlan flightPlan)
-				{
-					bool validation = true;
-					if(!int.TryParse(flightPlan.Passengers, out int value))
-				}*/
 	}
 }

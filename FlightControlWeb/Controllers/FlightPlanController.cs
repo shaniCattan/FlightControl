@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,15 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace FlightControlWeb.Controllers
 {
 	[Route("api/[controller]")]
 	public class FlightPlanController : Controller
 	{
-		private IFlightPlanManager manager = new FlightPlanManager();
-		public static Dictionary<string, FlightPlan> plansDict = new Dictionary<string, FlightPlan>();
+		private IFlightPlanManager manager;
+
+		public FlightPlanController(IFlightPlanManager fManager) => manager = fManager;
 
 		// GET: api/<controller>
 		[HttpGet]
@@ -30,16 +30,16 @@ namespace FlightControlWeb.Controllers
 		{
 			//if it's in our dictionary return it, otherwise look for it in external servers
 			FlightPlan flightPlan;
-			if (plansDict.TryGetValue(id, out flightPlan))
+			if (manager.PlansDict.TryGetValue(id, out flightPlan))
 			{
 				return flightPlan;
 			} else
 			{
-				if (FlightsController.externalActiveFlights.TryGetValue(id, out string serverUrl))
+				if (manager.ExternalActiveFlights.TryGetValue(id, out string serverUrl))
 				{
-					string exPlan = await new FlightsManager().
-						getExternalFlights(serverUrl+"/api/FlightPlan/"+id);
-					return JsonConvert.DeserializeObject<FlightPlan>(exPlan);
+					string externalPlan = await FlightsManager.getExternalFlights(
+						serverUrl+"/api/FlightPlan/"+id);
+					return JsonConvert.DeserializeObject<FlightPlan>(externalPlan);
 				} else
 				{
 					return BadRequest("No flight plan of id no. " + id + " was found");
@@ -49,12 +49,12 @@ namespace FlightControlWeb.Controllers
 
 		// POST api/<controller>
 		[HttpPost]
-		public ActionResult<string> Post([FromBody]FlightPlan flightPlan)
+		public Object Post([FromBody]FlightPlan flightPlan)
 		{
 			if (flightPlan != null)
 			{
-				manager.AddPlan(flightPlan, plansDict);
-				return Ok("Flight plan added successfully");
+				manager.AddPlan(flightPlan);
+				return Ok(flightPlan);
 			}
 			return BadRequest("Flight plan was not added to server. " +
 				"Possibly one or more of the fields in the flight plan is incorrect");
