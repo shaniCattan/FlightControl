@@ -38,7 +38,7 @@
         <div class="row">
             <div class="col-md-8">
                 <!--Map Section-->
-                <div id="mapid" style="width:600px; height: 400px;" onclick="resetDisplay()"></div>
+                <div id="mapid" style="width:600px; height: 400px;" onclick="resetDisplayWhenMapClicked()"></div>
                 <script src="js/script.js"></script>
                 <div class="row">
                     <div class="col-md-12" style="border:solid;background-color:antiquewhite">
@@ -48,11 +48,13 @@
                                 <thead>
                                     <tr>
                                         <th>Flight Id</th>
-                                        <th>Company Name</th>
-                                        <th>Longitude</th>
-                                        <th>Latitude</th>
+                                        <th>Company Name </th>
+                                        <th>Departure Time</th>
+                                        <th>Initial Location</th>
                                         <th>Passengers</th>
-                                        <th>Date Time</th>
+                                        <th>Current Location</th>
+                                        <th>Current Time</th>
+
                                     </tr>
                                 </thead>
                                 <tbody>
