@@ -15,6 +15,7 @@
 
 
 	<ItemGroup>
+    <Content Remove="wwwroot\airplane-icon.png" />
     <Content Remove="wwwroot\test.html" />
   </ItemGroup>
 
@@ -43,9 +44,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="C:\Users\avich\.nuget\packages\bootstrap\4.5.0\contentFiles\any\any\wwwroot\js\bootstrap.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\airplane-icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\index.html">

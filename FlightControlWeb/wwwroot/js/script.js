@@ -50,17 +50,21 @@ function displayFlightPath(flightPlan) {
 
 function getFlightById(flightId) {
     // flight id after cutting the "tr_" at the beginning: 
-   let rowResponse = fetch(`${flightPlanUri}/${flightId}`)
-        .then(response => response.json())
-        .then(flightPlan => {
-            currFlightId = flightId;
-            showData(flightPlan);
+    (async () => {
+        let rowResponse = await fetch(`${flightPlanUri}/${flightId}`)
+            .then(response => response.json())
+            .then(flightPlan => {
+                currFlightId = flightId;
+                showData(flightPlan);
+            }
+            );
+        if (rowResponse.status != 200) {
+            errorHandle(rowResponse.status, "There is a problem in getting flight by id from the server");
         }
-    );
-    if (rowResponse.status != 200) {
-        errorHandle(rowResponse.status, "There is a problem in getting flight by id from the server");
-    }
+    })();
+
 }
+
 
 function showData(flightPlan) {
     displayFlightPath(flightPlan);
@@ -78,18 +82,17 @@ function displayFlightDetails(flightPlan) {
     $("#flightDetailsTable > tbody").append(strRow);
 }
 
-let blackIcon = new airplaneIcon({ iconUrl: 'airplane-icon.png' });
-let redIcon = new airplaneIcon({ iconUrl: 'redairplane.png' });
+let blueIcon = new airplaneIcon({ iconUrl: 'blueplane.png' });
+let redIcon = new airplaneIcon({ iconUrl: 'redplane.png' });
 
 //function to insert a new airplane to map
 //also adding to map of keys
 function addNewPlaneToMap(latitude, longitude, idFlight) {
-    let newMarker = L.marker([latitude, longitude], { icon: blackIcon });
+    let newMarker = L.marker([latitude, longitude], { icon: blueIcon });
     newMarker.addTo(mymap);
     airplanesGroupLayer.addLayer(newMarker);
     newMarker.layerID = "icon_"+idFlight;
     mapAllPlanes.set(idFlight, newMarker);
-    //  alert(mapAllPlanes.has(idFlight) + " when addidng");
     newMarker.on('click', changeIconOnClick).addTo(mymap);
 }
 //changes the icon when it is being clicked
@@ -101,20 +104,14 @@ function changeIconOnClick(e) {
     $(document.getElementById("tr_" + this.layerID)).addClass('selected').siblings().removeClass('selected');
 }
 
-//when clicking on a row: in table EXflights or MYflights
-//(rowFlights is the id of tose rows)
-$(document).on("click", 'tr.rowFlight', function () {
-    if (currFlightId != "") {
-        resetDisplayWhenMapClicked();
+$(document).on("click", 'button.del', function (e) {
+    deleteFlightFromServer(this.id);
+    if ((currFlightId==this.id)) {
+        ResetDisplayWhenDeleteButtonClicked();
+        currFlightId = "";
     }
-    //highlighting the cliccekd flight
-    $(this).addClass('text-info').siblings().removeClass('text-info');
-    $(this).addClass('selected').siblings().removeClass('selected');
-    //displaying all is needed wahen clicking the row:
-    let idCut = this.id.slice(3);
-    getFlightById(idCut);
-    //changing icon
-    mapAllPlanes.get(idCut).setIcon(redIcon);
+    $(this).closest('tr').remove();
+    e.stopPropagation();
 });
 
 //recieiving a json of all flights and iterating over them,
@@ -138,10 +135,8 @@ function parseFlightsDataForMap(flights) {
 //then adds or sets regardingly
 function addOrSet(id, lat, lng) {
     if (mapAllPlanes.has(id)) {
-        //   alert("filght: " + id + "already exist");
         mapAllPlanes.get(id).setLatLng([lat, lng]);
     } else {//create a new planeIcon
-        //  alert("filght: " + id + "DOES NOT exist");
         addNewPlaneToMap(lat, lng, id);
     }
 }
@@ -152,16 +147,14 @@ function checkIfFlightFinished(flights) {
         for (let layerKey of mapAllPlanes.keys()) {//iterate over dictionary map
             flights.forEach(flight => {//iterate over flights
                 if (layerKey == flight.flight_id) {
-                    //alert("inside brackets " + flight.flight_id);
                     exist = true;
                 }
             });
 
             //if flight does not exist, need to remove the layer, and remove from mapOfAllPlanes
             if (!exist) {
-                //  alert(layerKey + "NOT EXIST when recieved info from server");
-                airplanesGroupLayer.remove(mapAllPlanes.get(id_icon));
-                mymap.removeLayer(mapAllPlanes.get(id_icon));
+                airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
+                mymap.removeLayer(mapAllPlanes.get(layerKey));
                 mapAllPlanes.delete(layerKey);
             }
             //reset 
@@ -183,17 +176,6 @@ function checkIfFlightFinished(flights) {
         }
     }
 }
-//for checking:
-//printing what map contains:
-function printingMapAllPlanes() {
-    //alert("map size before printing:" + mapAllPlanes.size);
-    for (let layerKey of mapAllPlanes.keys()) {
-        //    alert("flight: " + layerKey + "value: " + mapAllPlanes.get(layerKey) + "in mapAllPlanes");
-    }
-    for (let val of mapAllPlanes.values()) {
-        // alert("value is: " + val);
-    }
-}
 
 function ResetDisplayWhenDeleteButtonClicked() {
     //reset Flight Details table
@@ -206,7 +188,7 @@ function resetDisplayWhenMapClicked() {
     //check if there is a flight in the flight details
     if (currFlightId != "") {
         //reset Icon
-        mapAllPlanes.get(currFlightId).setIcon(blackIcon);
+        mapAllPlanes.get(currFlightId).setIcon(blueIcon);
         //reset Flight Details table
         $("#flightDetailsTable tbody tr").remove();
         //clear flight path from map
@@ -218,7 +200,7 @@ function resetDisplayWhenMapClicked() {
             })
         })
     }
-    currFlightId = 0;
+    currFlightId = "";
 }
 
 
@@ -232,44 +214,48 @@ $(document).ready(function () {
 // get an update regarding the current active flights
 function getMyActiveFlights() {
     let time = toUtc();
-  let rowResponse =  fetch(`${uri}=${time}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+    (async () => {
+        let rowResponse = fetch(`${uri}=${time}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data != "") {
+                    displayData(data);
+                    parseFlightsDataForMap(data);
+                }
+            });
+        if (rowResponse.status != 200) {
+            errorHandle(rowResponse.status, "There is a broblem to get internal active flights from server");
         }
-    })
-        .then(response => response.json())
-      .then(data => {
-          if (data != "") {
-            displayData(data);
-            parseFlightsDataForMap(data);
-          }
-        });
-    if (rowResponse.status != 200) {
-        errorHandle(rowResponse.status,"There is a broblem to get internal active flights from server");
-    }
+    })();
 }
 
 function getAllActiveFlights() {
     let time = toUtc();
-   let rowResponse = fetch(`${uri}=${time}&sync_all`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data != "") {
-                displayData(data);
-                parseFlightsDataForMap(data);
-            } else {
-                deleteAllIconsFromMap();
+    (async () => {
+        let rowResponse = fetch(`${uri}=${time}&sync_all`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             }
-        });
-    if ((rowResponse.status != 200) && (rowResponse.status!= undefined)) {
-        errorHandle(rowResponse.status, "There is a problem to get all active flights from server");
-    }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data != "") {
+                    displayData(data);
+                    parseFlightsDataForMap(data);
+                } else {
+                    deleteAllIconsFromMap();
+                }
+            });
+        if ((rowResponse.status != 200) && (rowResponse.status != undefined)) {
+            errorHandle(rowResponse.status, "There is a problem to get all active flights from server");
+        }
+    })();
 }
 
 //This function converts current time to utc time in format ssZ:mm:ddTHH-MM-yyyy 
@@ -317,14 +303,17 @@ function displayData(data) {
         }
     } else {
         if (data.is_external) {
-            strRow = '<tr class="rowFlight" id= tr_' + data.flight_id + ' ><td>' + data.flight_id + '</td>' + '<td>' + data.company_name + '</td>' + '<td>' + data.date_time + '</td><td><button class="del" id=' + data.flight_id + '>X</button></td></tr>';
+            strRow = '<tr class="rowFlight" id= tr_' + data.flight_id + '><td>' + data.flight_id + '</td>' + '<td>' + data.company_name + '</td>' + '<td>' + data.date_time + '</td>' + '<td><button class="del" id=' + data.flight_id + '>X</button></td></tr>'
             rowJq = $(strRow);
+
             $("#exFlightsTable > tbody").append(strRow);
 
         } else {
-            strRow = '<tr class="rowFlight"  id= tr_' + data.flight_id + '><td>' + data.flight_id + '</td>' + '<td>' + data.company_name + '</td>' + '<td>' + data.date_time + '</td><td><button class="del" id=' + data.flight_id + '>X</button></td></tr>'
+            strRow = '<tr class="rowFlight"  id= tr_' + data.flight_id + '><td>' + data.flight_id + '</td>' + '<td>' + data.company_name + '</td>' + '<td>' + data.date_time + '</td>' + '<td><button class="del" id=' + data.flight_id + '>X</button></td></tr>';
             rowJq = $(strRow);
+
             $("#myFlightsTable > tbody").append(strRow);
+
         }
         if (data.flight_id == currFlightId) {
             selectedRow = document.getElementById("tr_" + currFlightId);
@@ -338,36 +327,35 @@ function displayData(data) {
         }
     }
 }
-
-    //working:MYFLIGHTS
-    //FUNC:DELETE
-    $(document).on("click", 'button.del', function () {
-        deleteFlightFromServer(this.id);
-        $(this).closest('tr').remove();
-        if (currFlightId) {
-            ResetDisplayWhenDeleteButtonClicked();
-        }
-    });
-
-$(document).on("click", 'button.del', function () {
-    deleteFlightFromServer(this.id);
-    $(this).closest('tr').remove();
-    if (currFlightId) {
-        ResetDisplayWhenDeleteButtonClicked();
+//when clicking on a row: in table EXflights or MYflights
+//(rowFlights is the id of tose rows)
+$(document).on("click", 'tr.rowFlight', function () {
+    if (currFlightId != this.id) {
+        resetDisplayWhenMapClicked();
     }
+    //highlighting the cliccekd flight
+    $(this).addClass('text-info').siblings().removeClass('text-info');
+    $(this).addClass('selected').siblings().removeClass('selected');
+    //displaying all is needed wahen clicking the row:
+    let idCut = this.id.slice(3);
+    getFlightById(idCut);
+    //changing icon
+    mapAllPlanes.get(idCut).setIcon(redIcon);
 });
 
-    function deleteFlightFromServer(id) {
-      let rowResponse =  fetch(`${delUri}/${id}`, {
+function deleteFlightFromServer(id) {
+    (async () => {
+        let rowResponse = fetch(`${delUri}/${id}`, {
             method: 'DELETE',
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
         }).then(response => response.json());
         if (rowResponse.status != 200) {
             errorHandle(rowResponse.status, "There is a problem to delete an active flight from server");
         }
+    })();
     }
 
     const input = document.getElementById("fileInput");
