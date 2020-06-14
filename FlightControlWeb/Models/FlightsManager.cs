@@ -55,16 +55,16 @@ namespace FlightControlWeb.Models
 			//if we are in the first segment, then last segment == current segment
 			else if (segIndex == 1)
 			{
-				lastSeg.Latitude = plan.Value.Initial_Location.Latitude;
-				lastSeg.Longitude = plan.Value.Initial_Location.Longitude;
+				lastSeg.Latitude = Math.Round(plan.Value.Initial_Location.Latitude,5);
+				lastSeg.Longitude = Math.Round(plan.Value.Initial_Location.Longitude,5);
 			}
 			//calculate the timespan between the end of the last segment and relativeToDT
 			TimeSpan progress = relativeToDT - segStartDT;
 			TimeSpan segLength = segEndDT - segStartDT;
 			double relativeProgress = progress / segLength;
 			return new List<double>() {
-				lastSeg.Latitude + relativeProgress*(currSeg.Latitude-lastSeg.Latitude),
-				lastSeg.Longitude + relativeProgress*(currSeg.Longitude-lastSeg.Longitude),
+				Math.Round(lastSeg.Latitude + relativeProgress*(currSeg.Latitude-lastSeg.Latitude),5),
+				Math.Round(lastSeg.Longitude + relativeProgress*(currSeg.Longitude-lastSeg.Longitude),5)
 			};
 		}
 
@@ -121,9 +121,9 @@ namespace FlightControlWeb.Models
 			{
 				WebResponse answer = await request.GetResponseAsync();
 				response = (HttpWebResponse)answer;
-			} catch (Exception e)
+			} catch
 			{
-				throw e;
+				return null;
 			}
 			string strResult = null;
 			using (Stream stream = response.GetResponseStream())
@@ -154,12 +154,17 @@ namespace FlightControlWeb.Models
 			foreach (var server in servers)
 			{
 				string url = String.Format(server.Value + "/api/Flights?relative_to=" + relativeTo);
-				try
+/*				try
 				{
 					strResult = await getExternalFlights(url);
 				} catch
 				{
-					throw new Exception("Error in external server");
+					continue;
+				}*/
+				strResult = await getExternalFlights(url);
+				if (strResult == null)
+				{
+					continue;
 				}
 				externals = JsonConvert.DeserializeObject<List<Flights>>(strResult);
 				//add active flights from current server to allActives list which will be returned

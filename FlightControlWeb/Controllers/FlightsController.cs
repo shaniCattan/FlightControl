@@ -30,15 +30,17 @@ namespace FlightControlWeb.Controllers
 			}
 			else
 			{
-				try
+				actives = await flightsManager.GetExternalInternal(relativeTo);
+/*				try
 				{
 					actives = await flightsManager.GetExternalInternal(relativeTo);
-				} catch (Exception e)
-				{
-					return BadRequest(e.Message);
 				}
+				catch (Exception e)
+				{
+					return e.Message + "or external server has no flights";
+				}*/
 			}
-			return Ok(actives);
+			return actives;
 		}
 
 		// GET api/<controller>/5

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FlightControlWeb.Models;
+﻿using FlightControlWeb.Models;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Concurrent;
 
 namespace FlightControlWeb.Controllers
 {
@@ -66,7 +63,7 @@ namespace FlightControlWeb.Controllers
 			}
 			else
 			{
-				return BadRequest("No external server of ID no." + id + 
+				return BadRequest("No external server of ID no. " + id + 
 					" exists in this server's list");
 			}
 		}
