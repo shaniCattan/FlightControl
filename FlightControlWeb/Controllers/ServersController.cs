@@ -17,9 +17,15 @@ namespace FlightControlWeb.Controllers
 
 		// GET: api/<controller>
 		[HttpGet]
-		public ConcurrentDictionary<string,string> Get()
+		public ActionResult<ConcurrentDictionary<string,string>> Get()
 		{
-			return srvManager.GetServers();
+			try
+			{
+				return Ok(srvManager.GetServers());
+			} catch (Exception e)
+			{
+				return BadRequest(e.Message);
+			}
 		}
 
 		// GET api/<controller>/5

@@ -32,14 +32,14 @@ namespace FlightControlWeb.Controllers
 			FlightPlan flightPlan;
 			if (manager.PlansDict.TryGetValue(id, out flightPlan))
 			{
-				return flightPlan;
+				return Ok(flightPlan);
 			} else
 			{
 				if (manager.ExternalActiveFlights.TryGetValue(id, out string serverUrl))
 				{
 					string externalPlan = await FlightsManager.getExternalFlights(
 						serverUrl+"/api/FlightPlan/"+id);
-					return JsonConvert.DeserializeObject<FlightPlan>(externalPlan);
+					return Ok(JsonConvert.DeserializeObject<FlightPlan>(externalPlan));
 				} else
 				{
 					return BadRequest("No flight plan of id no. " + id + " was found");

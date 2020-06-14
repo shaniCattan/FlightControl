@@ -18,7 +18,7 @@ namespace FlightControlWeb.Controllers
 		{
 			if (!flightsManager.IsValidDateTime(relativeTo))
 			{
-				return "relative_to format should be yyyy-MM-ddTHH:mm:ssZ";
+				return BadRequest("relative_to format should be yyyy-MM-ddTHH:mm:ssZ");
 			}
 
 			string request = Request.QueryString.Value;
@@ -35,10 +35,10 @@ namespace FlightControlWeb.Controllers
 					actives = await flightsManager.GetExternalInternal(relativeTo);
 				} catch (Exception e)
 				{
-					return e.Message;
+					return BadRequest(e.Message);
 				}
 			}
-			return actives;
+			return Ok(actives);
 		}
 
 		// GET api/<controller>/5

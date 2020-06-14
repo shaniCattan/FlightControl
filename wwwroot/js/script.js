@@ -32,9 +32,9 @@ let airplaneIcon = L.Icon.extend({
 // This function iterates over data (flight object or an array of flights objects that the server sent) and parse it.
 function createCoords(flightPlan) {
     let coords = [];
-    coords.push([flightPlan.initial_location.longitude, flightPlan.initial_location.latitude]);
+    coords.push([flightPlan.initial_location.latitude, flightPlan.initial_location.longitude]);
     flightPlan.segments.forEach(segment => {
-        coords.push([segment.longitude, segment.latitude]);
+        coords.push([segment.latitude, segment.longitude]);
     });
     alert(coords);
     return coords;
@@ -83,8 +83,8 @@ let redIcon = new airplaneIcon({ iconUrl: 'redairplane.png' });
 
 //function to insert a new airplane to map
 //also adding to map of keys
-function addNewPlaneToMap(longitude, latitude, idFlight) {
-    let newMarker = L.marker([longitude, latitude], { icon: blackIcon });
+function addNewPlaneToMap(latitude, longitude, idFlight) {
+    let newMarker = L.marker([latitude, longitude], { icon: blackIcon });
     newMarker.addTo(mymap);
     airplanesGroupLayer.addLayer(newMarker);
     newMarker.layerID = "icon_"+idFlight;
@@ -135,28 +135,18 @@ function parseFlightsDataForMap(flights) {
 }
 //checks a current flight if need to add or just set it
 //then adds or sets regardingly
-function addOrSet(id, lng, lat) {
+function addOrSet(id, lat, lng) {
     if (mapAllPlanes.has(id)) {
         //   alert("filght: " + id + "already exist");
         mapAllPlanes.get(id).setLatLng([lat, lng]);
     } else {//create a new planeIcon
         //  alert("filght: " + id + "DOES NOT exist");
-        addNewPlaneToMap(lng, lat, id);
+        addNewPlaneToMap(lat, lng, id);
     }
 }
 
 function checkIfFlightFinished(flights) {
     let exist = false;
-    //if there are no flights from server at all:
-    if ((flights == "") && (mapAllPlanes.size != 0)) {
-        alert(flights);
-        //we want to delete all the plains we hold in our mapKEYS:
-        for (let layerKey of mapAllPlanes.keys()) {
-            airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
-            mymap.removeLayer(mapAllPlanes.get(layerKey));
-            mapAllPlanes.delete(layerKey);
-        }
-    }
     if ($.isArray(flights)) {//if it is an array
         for (let layerKey of mapAllPlanes.keys()) {//iterate over dictionary map
             flights.forEach(flight => {//iterate over flights
@@ -169,8 +159,8 @@ function checkIfFlightFinished(flights) {
             //if flight does not exist, need to remove the layer, and remove from mapOfAllPlanes
             if (!exist) {
                 //  alert(layerKey + "NOT EXIST when recieved info from server");
-                airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
-                mymap.removeLayer(mapAllPlanes.get(layerKey));
+                airplanesGroupLayer.remove(mapAllPlanes.get(id_icon));
+                mymap.removeLayer(mapAllPlanes.get(id_icon));
                 mapAllPlanes.delete(layerKey);
             }
             //reset 
@@ -184,6 +174,7 @@ function checkIfFlightFinished(flights) {
             //if flight does not exist, need to remove the layer, and remove from mapOfAllPlanes
             if (!exist) {
                 airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
+                mymap.removeLayer(mapAllPlanes.get(layerKey));
                 mapAllPlanes.delete(layerKey);
             }
             //reset 
@@ -249,8 +240,6 @@ function getMyActiveFlights() {
         });
 }
 
-// This function sends a get request to the server in order to
-// get an update regarding the current active flights
 function getAllActiveFlights() {
     let time = toUtc();
     fetch(`${uri}=${time}&sync_all`, {
@@ -264,6 +253,8 @@ function getAllActiveFlights() {
             if (data != "") {
                 displayData(data);
                 parseFlightsDataForMap(data);
+            } else {
+                deleteAllIconsFromMap();
             }
         })
         .catch((error) => {
@@ -400,4 +391,12 @@ async function errorHandle(errStatus, errData) {
     $("#error").show().delay(2000).fadeOut();
 }
 
-
+//if there are no flights from server at all:
+//we want to delete all the plains we hold in our mapKEYS:
+function deleteAllIconsFromMap() {
+    for (let layerKey of mapAllPlanes.keys()) {
+        airplanesGroupLayer.remove(mapAllPlanes.get(layerKey));
+        mymap.removeLayer(mapAllPlanes.get(layerKey));
+        mapAllPlanes.delete(layerKey);
+    }
+}
